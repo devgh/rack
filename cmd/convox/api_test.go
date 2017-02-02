@@ -56,7 +56,6 @@ func TestApiGet404(t *testing.T) {
 
 	b, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err)
-
 	body := string(b)
 
 	ts := testServer(t,
@@ -73,7 +72,7 @@ func TestApiGet404(t *testing.T) {
 		test.ExecRun{
 			Command: "convox api get /nonexistent",
 			Exit:    1,
-			Stderr:  "ERROR: \"Not found\"",
+			Stderr:  "ERROR: Not found",
 		},
 	)
 }
