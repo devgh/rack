@@ -432,6 +432,7 @@ func (c *Client) request(method, path string, body io.Reader) (*http.Request, er
 	req.SetBasicAuth("convox", string(c.Password))
 
 	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Version", c.Version)
 
 	if c.Rack != "" {
