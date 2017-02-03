@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -29,24 +30,27 @@ func (p *AWSProvider) AppCancel(name string) error {
 func (p *AWSProvider) AppGet(name string) (*structs.App, error) {
 	var res *cloudformation.DescribeStacksOutput
 	var err error
+	colorized := fmt.Sprintf("\033[38;5;228m%s\033[0m", name)
 
 	res, err = p.describeStacks(&cloudformation.DescribeStacksInput{
 		StackName: aws.String(p.Rack + "-" + name),
 	})
 	if ae, ok := err.(awserr.Error); ok && ae.Code() == "ValidationError" {
-		return nil, errorNotFound(fmt.Sprintf("%s not found", name))
+		msg := fmt.Sprintf("app %s not found", name)
+		msg = strings.Replace(msg, name, colorized, 1)
+		return nil, errorNotFound(msg)
 	}
 	if err != nil {
 		return nil, err
 	}
 	if len(res.Stacks) != 1 {
-		return nil, fmt.Errorf("could not load stack for app: %s", name)
+		return nil, fmt.Errorf("could not load stack for app: %s", colorized)
 	}
 
 	app := appFromStack(res.Stacks[0])
 
 	if app.Tags["Rack"] != "" && app.Tags["Rack"] != p.Rack {
-		return nil, fmt.Errorf("no such app: %s", name)
+		return nil, fmt.Errorf("no such app: %s", colorized)
 	}
 
 	return &app, nil
