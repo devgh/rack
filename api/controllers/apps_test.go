@@ -22,7 +22,7 @@ func TestAppList(t *testing.T) {
 	aws := test.StubAws(test.DescribeStackCycleWithoutQuery("convox-test-bar"))
 	defer aws.Close()
 
-	body := test.HTTPBody("GET", "http://convox/apps", nil)
+	body := test.HTTPBody("GET", "http://convox/apps", nil, nil)
 
 	var resp []map[string]string
 	err := json.Unmarshal([]byte(body), &resp)
@@ -39,7 +39,7 @@ func TestAppShow(t *testing.T) {
 	)
 	defer aws.Close()
 
-	body := test.HTTPBody("GET", "http://convox/apps/bar", nil)
+	body := test.HTTPBody("GET", "http://convox/apps/bar", nil, nil)
 
 	var resp map[string]string
 	err := json.Unmarshal([]byte(body), &resp)
@@ -57,7 +57,7 @@ func TestAppShowUnbound(t *testing.T) {
 	)
 	defer aws.Close()
 
-	body := test.HTTPBody("GET", "http://convox/apps/bar", nil)
+	body := test.HTTPBody("GET", "http://convox/apps/bar", nil, nil)
 
 	var resp map[string]string
 	err := json.Unmarshal([]byte(body), &resp)
@@ -75,7 +75,7 @@ func TestAppShowWithAppNotFound(t *testing.T) {
 	)
 	defer aws.Close()
 
-	test.AssertStatus(t, 404, "GET", "http://convox/apps/bar", nil)
+	test.AssertStatus(t, 404, "GET", "http://convox/apps/bar", nil, nil)
 }
 
 // Test the primary path: creating an app on a `convox` rack
@@ -93,7 +93,7 @@ func TestAppCreate(t *testing.T) {
 	defer aws.Close()
 
 	val := url.Values{"name": []string{"application"}}
-	body := test.HTTPBody("POST", "http://convox/apps", val)
+	body := test.HTTPBody("POST", "http://convox/apps", val, nil)
 
 	if assert.NotEqual(t, "", body) {
 		var resp map[string]string
@@ -115,7 +115,7 @@ func TestAppCreateWithAlreadyExists(t *testing.T) {
 	defer aws.Close()
 
 	val := url.Values{"name": []string{"application"}}
-	body := test.AssertStatus(t, 403, "POST", "http://convox/apps", val)
+	body := test.AssertStatus(t, 403, "POST", "http://convox/apps", val, nil)
 	assert.Equal(t, "{\"error\":\"there is already an app named application (running)\"}", body)
 }
 
@@ -126,7 +126,7 @@ func TestAppCreateWithAlreadyExistsUnbound(t *testing.T) {
 	defer aws.Close()
 
 	val := url.Values{"name": []string{"application"}}
-	body := test.AssertStatus(t, 403, "POST", "http://convox/apps", val)
+	body := test.AssertStatus(t, 403, "POST", "http://convox/apps", val, nil)
 	assert.Equal(t, "{\"error\":\"there is already a legacy app named application (running). We recommend you delete this app and create it again.\"}", body)
 }
 
@@ -137,7 +137,7 @@ func TestAppCreateWithRackName(t *testing.T) {
 	defer aws.Close()
 
 	val := url.Values{"name": []string{"convox-test"}}
-	body := test.AssertStatus(t, 403, "POST", "http://convox/apps", val)
+	body := test.AssertStatus(t, 403, "POST", "http://convox/apps", val, nil)
 	assert.Equal(t, "{\"error\":\"application name cannot match rack name (convox-test). Please choose a different name for your app.\"}", body)
 }
 
@@ -155,7 +155,7 @@ func TestAppDelete(t *testing.T) {
 	// setup expectations on current provider
 	models.TestProvider.On("AppDelete", "bar").Return(nil)
 
-	body := test.HTTPBody("DELETE", "http://convox/apps/bar", nil)
+	body := test.HTTPBody("DELETE", "http://convox/apps/bar", nil, nil)
 
 	var resp map[string]bool
 	err := json.Unmarshal([]byte(body), &resp)
@@ -172,7 +172,7 @@ func TestAppDeleteWithAppNotFound(t *testing.T) {
 	)
 	defer aws.Close()
 
-	test.AssertStatus(t, 404, "DELETE", "http://convox/apps/bar", nil)
+	test.AssertStatus(t, 404, "DELETE", "http://convox/apps/bar", nil, nil)
 }
 
 func TestAppLogs(t *testing.T) {
